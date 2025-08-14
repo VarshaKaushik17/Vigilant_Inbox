@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Security Analyzer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <div class="header-content">
+        <div class="logo">
+          <span class="shield-icon">🛡️</span>
+          <h1>Email Security</h1>
+        </div>
+        <div class="status-indicator" id="statusIndicator">
+          <span class="status-dot"></span>
+          <span class="status-text">Scanning...</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="popup-main">
+      <!-- Current Page Analysis -->
+      <section class="analysis-section">
+        <h2>Current Page Analysis</h2>
+        <div class="analysis-card" id="currentAnalysis">
+          <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <span>Analyzing emails...</span>
+          </div>
+          
+          <div class="analysis-results" id="analysisResults" style="display: none;">
+            <div class="stat-grid">
+              <div class="stat-item">
+                <span class="stat-number" id="emailCount">0</span>
+                <span class="stat-label">Emails Scanned</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="threatsFound">0</span>
+                <span class="stat-label">Threats Found</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="riskScore">0</span>
+                <span class="stat-label">Avg Risk Score</span>
+              </div>
+            </div>
+            
+            <div class="platform-info">
+              <span class="platform-label">Platform:</span>
+              <span class="platform-name" id="platformName">Unknown</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Threats -->
+      <section class="threats-section">
+        <h2>Recent Threats</h2>
+        <div class="threats-list" id="threatsList">
+          <div class="no-threats" id="noThreats">
+            <span class="check-icon">✅</span>
+            <p>No threats detected recently</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="actions-section">
+        <h2>Quick Actions</h2>
+        <div class="action-buttons">
+          <button class="action-btn primary" id="rescanBtn">
+            <span class="btn-icon">🔄</span>
+            Rescan Page
+          </button>
+          <button class="action-btn secondary" id="reportBtn">
+            <span class="btn-icon">📋</span>
+            View Report
+          </button>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="settings-section">
+        <h2>Settings</h2>
+        <div class="settings-grid">
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="realTimeScanning" checked>
+              <span class="checkmark"></span>
+              Real-time scanning
+            </label>
+          </div>
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="showWarnings" checked>
+              <span class="checkmark"></span>
+              Show inline warnings
+            </label>
+          </div>
+          <div class="setting-item">
+            <label class="setting-label">
+              <input type="checkbox" id="blockSuspicious">
+              <span class="checkmark"></span>
+              Block suspicious emails
+            </label>
+          </div>
+        </div>
+        
+        <div class="sensitivity-setting">
+          <label for="sensitivitySlider">Detection Sensitivity</label>
+          <div class="slider-container">
+            <input type="range" id="sensitivitySlider" min="1" max="5" value="3">
+            <div class="slider-labels">
+              <span>Low</span>
+              <span>Medium</span>
+              <span>High</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="popup-footer">
+      <div class="footer-stats">
+        <span class="footer-stat">
+          <strong id="totalScanned">0</strong> total emails scanned
+        </span>
+        <span class="footer-stat">
+          <strong id="totalThreats">0</strong> threats blocked
+        </span>
+      </div>
+      <div class="footer-links">
+        <a href="#" id="helpLink">Help</a>
+        <a href="#" id="feedbackLink">Feedback</a>
+        <a href="#" id="aboutLink">About</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Report Modal -->
+  <div class="modal" id="reportModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Security Analysis Report</h3>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="report-content" id="reportContent">
+          <!-- Report content will be populated by JavaScript -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary" id="exportBtn">Export Report</button>
+        <button class="btn primary" id="closeReportBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html> 

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Simulator - Test Chrome Extension</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        
+        .gmail-header {
+            background: #d93025;
+            color: white;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .gmail-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .gmail-sidebar {
+            float: left;
+            width: 250px;
+            background: #f8f9fa;
+            height: 100vh;
+            padding: 20px;
+            border-right: 1px solid #dadce0;
+        }
+        
+        .gmail-main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .email-list {
+            margin-bottom: 30px;
+        }
+        
+        .email-item {
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: white;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+        
+        .email-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .email-item.selected {
+            border-color: #1a73e8;
+            box-shadow: 0 2px 8px rgba(26,115,232,0.2);
+        }
+        
+        .email-preview {
+            padding: 15px;
+        }
+        
+        .email-sender {
+            font-weight: bold;
+            color: #202124;
+            margin-bottom: 5px;
+        }
+        
+        .email-subject {
+            color: #202124;
+            margin-bottom: 5px;
+        }
+        
+        .email-snippet {
+            color: #5f6368;
+            font-size: 14px;
+        }
+        
+        .email-time {
+            float: right;
+            color: #5f6368;
+            font-size: 13px;
+        }
+        
+        .email-detail {
+            display: none;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 20px;
+        }
+        
+        .email-detail.active {
+            display: block;
+        }
+        
+        .email-detail-header {
+            padding: 20px;
+            border-bottom: 1px solid #dadce0;
+            background: #f8f9fa;
+        }
+        
+        .email-detail-subject {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .email-detail-meta {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+        
+        .email-detail-body {
+            padding: 20px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        
+        /* Gmail-like classes for content script integration */
+        .ii.gt {
+            /* Gmail email thread container */
+        }
+        
+        .a3s.aiL {
+            /* Gmail email content */
+        }
+        
+        [data-thread-id] {
+            /* Gmail thread with data attribute */
+        }
+        
+        .go .gD {
+            /* Gmail sender element */
+        }
+        
+        .test-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 1px solid #dadce0;
+        }
+        
+        .test-btn {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .test-btn:hover {
+            background: #1557b0;
+        }
+        
+        .status-indicator {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            text-align: center;
+        }
+        
+        .status-loading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="gmail-container">
+        <div class="gmail-header">
+            📧 Gmail Simulator - Email Security Analyzer Test Environment
+        </div>
+        
+        <div class="gmail-sidebar">
+            <h3>Folders</h3>
+            <div style="padding: 10px 0;">
+                <div style="padding: 5px 0; color: #1a73e8; font-weight: bold;">📥 Inbox (5)</div>
+                <div style="padding: 5px 0; color: #5f6368;">📤 Sent</div>
+                <div style="padding: 5px 0; color: #5f6368;">📝 Drafts</div>
+                <div style="padding: 5px 0; color: #5f6368;">🗑️ Trash</div>
+            </div>
+        </div>
+        
+        <div class="gmail-main">
+            <h2>Inbox</h2>
+            
+            <div class="email-list" id="emailList">
+                <!-- Email list will be populated here -->
+            </div>
+            
+            <div id="emailDetailContainer">
+                <!-- Email details will be shown here -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-controls">
+        <div style="font-weight: bold; margin-bottom: 10px;">🛡️ Extension Test</div>
+        <button class="test-btn" onclick="loadExtensionScripts()">Load Extension</button>
+        <button class="test-btn" onclick="testAnalysis()">Test Analysis</button>
+        <button class="test-btn" onclick="clearWarnings()">Clear Warnings</button>
+        <div id="statusIndicator" class="status-indicator" style="display: none;"></div>
+    </div>
+
+    <script src="test-emails.js"></script>
+    <script>
+        class GmailSimulator {
+            constructor() {
+                this.selectedEmailId = null;
+                this.extensionLoaded = false;
+                this.init();
+            }
+
+            init() {
+                this.renderEmailList();
+                this.setupEventListeners();
+            }
+
+            renderEmailList() {
+                const emailList = document.getElementById('emailList');
+                const allEmails = [...testEmails.validEmails, ...testEmails.suspiciousEmails];
+                
+                emailList.innerHTML = allEmails.map(email => `
+                    <div class="email-item" data-thread-id="${email.id}" onclick="simulator.selectEmail('${email.id}')">
+                        <div class="email-preview">
+                            <div class="email-time">${this.getTimeAgo(email.timestamp)}</div>
+                            <div class="email-sender">${email.sender}</div>
+                            <div class="email-subject">${email.subject}</div>
+                            <div class="email-snippet">${email.content.substring(0, 100)}...</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            selectEmail(emailId) {
+                // Remove previous selection
+                document.querySelectorAll('.email-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                // Add selection to clicked email
+                document.querySelector(`[data-thread-id="${emailId}"]`).classList.add('selected');
+                
+                this.selectedEmailId = emailId;
+                this.showEmailDetail(emailId);
+            }
+
+            showEmailDetail(emailId) {
+                const email = this.findEmailById(emailId);
+                if (!email) return;
+
+                const container = document.getElementById('emailDetailContainer');
+                container.innerHTML = `
+                    <div class="email-detail active ii gt" data-thread-id="${emailId}">
+                        <div class="email-detail-header">
+                            <div class="email-detail-subject">${email.subject}</div>
+                            <div class="email-detail-meta">
+                                <span><strong>From:</strong></span>
+                                <span class="go gD" email="${email.sender}">${email.sender}</span>
+                                <span><strong>To:</strong></span>
+                                <span>you@example.com</span>
+                                <span><strong>Date:</strong></span>
+                                <span>${new Date(email.timestamp).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div class="email-detail-body a3s aiL">${email.content}</div>
+                    </div>
+                `;
+
+                // Trigger extension analysis if loaded
+                if (this.extensionLoaded && window.emailAnalyzer) {
+                    setTimeout(() => {
+                        window.emailAnalyzer.analyzeVisibleEmails();
+                    }, 500);
+                }
+            }
+
+            findEmailById(emailId) {
+                const allEmails = [...testEmails.validEmails, ...testEmails.suspiciousEmails];
+                return allEmails.find(email => email.id === emailId);
+            }
+
+            getTimeAgo(timestamp) {
+                const now = Date.now();
+                const diff = now - timestamp;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+
+                if (hours > 0) return `${hours}h`;
+                if (minutes > 0) return `${minutes}m`;
+                return 'now';
+            }
+
+            setupEventListeners() {
+                // Simulate Gmail's dynamic content loading
+                window.addEventListener('hashchange', () => {
+                    console.log('Gmail navigation simulated');
+                });
+            }
+        }
+
+        // Test functions for extension
+        function loadExtensionScripts() {
+            showStatus('Loading extension scripts...', 'loading');
+            
+            // Load phishing detector
+            const detectorScript = document.createElement('script');
+            detectorScript.src = 'phishing-detector.js';
+            detectorScript.onload = () => {
+                // Load content script
+                const contentScript = document.createElement('script');
+                contentScript.src = 'content.js';
+                contentScript.onload = () => {
+                    simulator.extensionLoaded = true;
+                    showStatus('Extension loaded successfully!', 'success');
+                    
+                    // Trigger analysis of currently visible email
+                    if (simulator.selectedEmailId) {
+                        setTimeout(() => {
+                            if (window.emailAnalyzer) {
+                                window.emailAnalyzer.analyzeVisibleEmails();
+                            }
+                        }, 1000);
+                    }
+                };
+                contentScript.onerror = () => {
+                    showStatus('Failed to load content script', 'error');
+                };
+                document.head.appendChild(contentScript);
+            };
+            detectorScript.onerror = () => {
+                showStatus('Failed to load phishing detector', 'error');
+            };
+            document.head.appendChild(detectorScript);
+            
+            // Load styles
+            const styleLink = document.createElement('link');
+            styleLink.rel = 'stylesheet';
+            styleLink.href = 'styles.css';
+            document.head.appendChild(styleLink);
+        }
+
+        function testAnalysis() {
+            if (!simulator.extensionLoaded) {
+                showStatus('Load extension first!', 'error');
+                return;
+            }
+            
+            if (!simulator.selectedEmailId) {
+                showStatus('Select an email first!', 'error');
+                return;
+            }
+
+            showStatus('Running analysis...', 'loading');
+            
+            if (window.emailAnalyzer) {
+                window.emailAnalyzer.analyzeVisibleEmails();
+                setTimeout(() => {
+                    showStatus('Analysis complete!', 'success');
+                }, 2000);
+            } else {
+                showStatus('Extension not properly loaded', 'error');
+            }
+        }
+
+        function clearWarnings() {
+            document.querySelectorAll('.email-security-warning').forEach(warning => {
+                warning.remove();
+            });
+            showStatus('Warnings cleared', 'success');
+        }
+
+        function showStatus(message, type) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.textContent = message;
+            indicator.className = `status-indicator status-${type}`;
+            indicator.style.display = 'block';
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Initialize simulator
+        const simulator = new GmailSimulator();
+        
+        // Auto-select first email for demo
+        setTimeout(() => {
+            simulator.selectEmail('valid_1');
+        }, 500);
+
+        console.log('Gmail Simulator initialized. Use the test controls to load and test the extension.');
+    </script>
+</body>
+</html> 

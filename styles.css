@@ -1,0 +1,291 @@
+/**
+ * Content Script Styles for Email Security Analyzer
+ * Styles for warning overlays and email integration
+ */
+
+/* Warning overlay styles */
+.email-security-warning {
+  position: relative !important;
+  z-index: 10000 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  animation: slideInWarning 0.3s ease-out !important;
+}
+
+@keyframes slideInWarning {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.email-security-warning * {
+  box-sizing: border-box !important;
+}
+
+.email-security-warning .dismiss-warning {
+  transition: all 0.2s ease !important;
+}
+
+.email-security-warning .dismiss-warning:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.05) !important;
+}
+
+.email-security-warning .warning-details {
+  transition: all 0.3s ease !important;
+}
+
+/* High-contrast mode support */
+@media (prefers-contrast: high) {
+  .email-security-warning {
+    border: 2px solid currentColor !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .email-security-warning {
+    animation: none !important;
+  }
+  
+  .email-security-warning .dismiss-warning {
+    transition: none !important;
+  }
+  
+  .email-security-warning .warning-details {
+    transition: none !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .email-security-warning {
+    filter: brightness(0.9) !important;
+  }
+}
+
+/* Security indicator for email elements */
+.email-security-indicator {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  z-index: 9999 !important;
+  font-size: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: bold !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.email-security-indicator.safe {
+  background: #22c55e !important;
+  color: white !important;
+}
+
+.email-security-indicator.warning {
+  background: #f59e0b !important;
+  color: white !important;
+}
+
+.email-security-indicator.danger {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+.email-security-indicator.critical {
+  background: #dc2626 !important;
+  color: white !important;
+  animation: pulse 2s infinite !important;
+}
+
+/* Blur effect for blocked content */
+.email-security-blocked {
+  filter: blur(5px) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  position: relative !important;
+}
+
+.email-security-blocked::after {
+  content: '🚫 Content Blocked for Security' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: rgba(220, 38, 38, 0.9) !important;
+  color: white !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  font-weight: bold !important;
+  font-size: 12px !important;
+  z-index: 10001 !important;
+  white-space: nowrap !important;
+}
+
+/* Tooltip styles */
+.email-security-tooltip {
+  position: absolute !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  z-index: 10002 !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  transition: opacity 0.2s ease !important;
+  max-width: 250px !important;
+  word-wrap: break-word !important;
+}
+
+.email-security-tooltip.show {
+  opacity: 1 !important;
+}
+
+.email-security-tooltip::before {
+  content: '' !important;
+  position: absolute !important;
+  top: -4px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 0 !important;
+  height: 0 !important;
+  border-left: 4px solid transparent !important;
+  border-right: 4px solid transparent !important;
+  border-bottom: 4px solid rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Platform-specific adjustments */
+
+/* Gmail specific styles */
+[data-thread-id] .email-security-warning,
+.ii.gt .email-security-warning {
+  margin: 8px 0 !important;
+}
+
+/* Outlook specific styles */
+[data-convid] .email-security-warning,
+.x_bodyContainer .email-security-warning {
+  margin: 8px 0 !important;
+}
+
+/* Yahoo Mail specific styles */
+[data-test-id="message-view"] .email-security-warning,
+.msg-body .email-security-warning {
+  margin: 8px 0 !important;
+}
+
+/* Loading overlay for analysis */
+.email-security-analyzing {
+  position: relative !important;
+}
+
+.email-security-analyzing::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(102, 126, 234, 0.1) !important;
+  z-index: 9998 !important;
+  pointer-events: none !important;
+}
+
+.email-security-analyzing::after {
+  content: '🔍 Analyzing...' !important;
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  background: rgba(102, 126, 234, 0.9) !important;
+  color: white !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 10px !important;
+  font-weight: bold !important;
+  z-index: 9999 !important;
+  animation: pulse 1.5s infinite !important;
+}
+
+/* Print styles - hide security warnings when printing */
+@media print {
+  .email-security-warning,
+  .email-security-indicator,
+  .email-security-tooltip {
+    display: none !important;
+  }
+  
+  .email-security-blocked {
+    filter: none !important;
+    pointer-events: auto !important;
+    user-select: auto !important;
+  }
+  
+  .email-security-blocked::after {
+    display: none !important;
+  }
+}
+
+/* Accessibility improvements */
+.email-security-warning:focus-within {
+  outline: 2px solid #667eea !important;
+  outline-offset: 2px !important;
+}
+
+.email-security-warning button:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.8) !important;
+  outline-offset: 1px !important;
+}
+
+/* Screen reader only content */
+.email-security-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  .email-security-warning {
+    border: 3px solid currentColor !important;
+  }
+  
+  .email-security-indicator {
+    border: 2px solid currentColor !important;
+  }
+  
+  .email-security-tooltip {
+    border: 1px solid white !important;
+  }
+}
+
+/* Motion preference adjustments */
+@media (prefers-reduced-motion: reduce) {
+  .email-security-indicator.critical {
+    animation: none !important;
+  }
+  
+  .email-security-analyzing::after {
+    animation: none !important;
+  }
+  
+  .email-security-warning {
+    animation: none !important;
+  }
+} 

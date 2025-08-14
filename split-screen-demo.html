@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Email Security Analyzer - Interactive Demo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 118, 117, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 177, 153, 0.3) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(120deg); }
+            66% { transform: translateY(20px) rotate(240deg); }
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(0px);
+        }
+
+        /* Left Panel - Analysis Controls */
+        .left-panel {
+            width: 45%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 20px 0 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            z-index: 1;
+        }
+
+        :root {
+            --header-height: 96px;
+        }
+
+        .left-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 20px 30px;
+            height: var(--header-height);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .left-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .left-header h1 {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            font-weight: 800;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .shield-twirl {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.9), rgba(255,255,255,0.2));
+            box-shadow: 0 0 18px rgba(255,255,255,0.6), 0 0 30px rgba(102,126,234,0.5), 0 0 40px rgba(118,75,162,0.4);
+            animation: twirl 2.2s linear infinite, glowPulse 2.2s ease-in-out infinite;
+            font-size: 1.2em;
+        }
+
+        @keyframes twirl {
+            0% { transform: translateX(0) scale(1); }
+            50% { transform: translateX(12px) scale(1.05); }
+            100% { transform: translateX(0) scale(1); }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 14px rgba(255,255,255,0.5), 0 0 24px rgba(102,126,234,0.4), 0 0 34px rgba(118,75,162,0.35); }
+            50% { box-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(102,126,234,0.6), 0 0 55px rgba(118,75,162,0.5); }
+        }
+
+        .left-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+
+        .left-content {
+            flex: 1;
+            padding: 30px 25px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(248,250,252,0.8) 100%);
+            /* Reserve header space to avoid reflow on status changes */
+            padding-top: calc(var(--header-height) - 20px);
+            box-sizing: border-box;
+        }
+
+        .analyze-section {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .analyze-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        }
+
+        .analyze-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
+        }
+
+        .analyze-section h3 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .analyze-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .analyze-btn:hover::before {
+            left: 100%;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .analysis-results {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analysis-results::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6, #ef4444);
+        }
+
+        .analysis-results.show {
+            display: block;
+            animation: slideInUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .risk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(241, 245, 249, 0.8);
+        }
+
+        .risk-header h3 {
+            font-size: 1.4rem;
+            color: #2d3748;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .risk-score {
+            font-size: 2.2rem;
+            font-weight: 900;
+            padding: 15px 25px;
+            border-radius: 15px;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .risk-score::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .risk-minimal {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .risk-high {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+            animation: dangerPulse 1.5s infinite;
+        }
+
+        @keyframes dangerPulse {
+            0%, 100% { box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 12px 35px rgba(239, 68, 68, 0.6); }
+        }
+
+        .analysis-details {
+            display: grid;
+            gap: 20px;
+        }
+
+        .detail-section {
+            background: linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(255,255,255,0.9) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .detail-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .detail-section:hover {
+            transform: translateX(5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .detail-section:hover::before {
+            width: 100%;
+            opacity: 0.1;
+        }
+
+        .detail-section.positive {
+            border-left-color: #10b981;
+        }
+
+        .detail-section.positive::before {
+            background: linear-gradient(180deg, #10b981, #34d399);
+        }
+
+        .detail-section.negative {
+            border-left-color: #ef4444;
+        }
+
+        .detail-section.negative::before {
+            background: linear-gradient(180deg, #ef4444, #f87171);
+        }
+
+        .detail-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #2d3748;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .factor-list {
+            list-style: none;
+            display: grid;
+            gap: 10px;
+        }
+
+        .factor-list li {
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            position: relative;
+            padding-left: 45px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .factor-list li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .factor-list li::before {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .positive .factor-list li::before {
+            content: '✅';
+        }
+
+        .negative .factor-list li::before {
+            content: '⚠️';
+        }
+
+        /* Right Panel - Gmail Interface */
+        .right-panel {
+            width: 55%;
+            background: rgba(255, 255, 255, 0.98);
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(20px);
+            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .gmail-header {
+            background: linear-gradient(135deg, #ea4335 0%, #fbbc04 50%, #34a853 100%);
+            color: white;
+            padding: 20px 30px;
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gmail-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .gmail-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .gmail-logo svg {
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .gmail-logo .logo-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.35);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .gmail-logo:hover svg {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .email-navigation {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .nav-arrow {
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-arrow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .nav-arrow:hover::before {
+            left: 100%;
+        }
+
+        .nav-arrow:hover {
+            background: rgba(255,255,255,0.35);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .nav-arrow:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .email-counter {
+            font-size: 1rem;
+            opacity: 0.95;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .email-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: linear-gradient(180deg, rgba(248,249,250,0.5) 0%, rgba(255,255,255,0.8) 100%);
+        }
+
+        .email-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.8);
+            overflow: hidden;
+            max-width: 100%;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .email-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.15);
+        }
+
+        .email-header-info {
+            padding: 30px;
+            border-bottom: 1px solid rgba(232, 234, 237, 0.6);
+            background: linear-gradient(135deg, rgba(248,249,250,0.8) 0%, rgba(255,255,255,0.9) 100%);
+            position: relative;
+        }
+
+        .email-header-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        }
+
+        .email-subject {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #202124;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .email-meta {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 15px 25px;
+            font-size: 1rem;
+            color: #5f6368;
+        }
+
+        .email-meta-label {
+            font-weight: 700;
+            color: #3c4043;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .email-meta-label::before {
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: #667eea;
+        }
+
+        .email-meta-label[data-label="from"]::before { content: '\f007'; }
+        .email-meta-label[data-label="to"]::before { content: '\f0e0'; }
+        .email-meta-label[data-label="date"]::before { content: '\f017'; }
+        .email-meta-label[data-label="auth"]::before { content: '\f3ed'; }
+
+        .email-body {
+            padding: 30px;
+            line-height: 1.8;
+            color: #202124;
+            white-space: pre-wrap;
+            font-size: 1.05rem;
+            background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(248,249,250,0.7) 100%);
+        }
+
+        .status-indicator {
+            margin-top: 20px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            min-height: 56px;
+        }
+
+        .status-indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .status-indicator:hover::before {
+            left: 100%;
+        }
+
+        .status-loading {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border: 2px solid #fed7aa;
+            animation: loadingPulse 1.5s infinite;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .status-safe {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            border: 2px solid #6ee7b7;
+        }
+
+        .status-danger {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 2px solid #f87171;
+            animation: dangerGlow 2s infinite;
+        }
+
+        @keyframes dangerGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.5); }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #fed7aa;
+            border-radius: 50%;
+            border-top-color: #f59e0b;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Highlighted content in analysis */
+        .highlighted-content {
+            margin-top: 25px;
+            background: linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(255,255,255,0.9) 100%);
+            border-radius: 15px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .highlighted-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #8b5cf6, #06b6d4, #10b981);
+        }
+
+        .highlighted-content h4 {
+            margin-bottom: 15px;
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .highlighted-text {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-height: 350px;
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+        }
+
+        .suspicious-highlight {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #991b1b;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-weight: 700;
+            border: 1px solid #fecaca;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+            animation: highlightPulse 2s infinite;
+        }
+
+        @keyframes highlightPulse {
+            0%, 100% { box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2); }
+            50% { box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+        }
+
+        .url-highlight {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-weight: 700;
+            border: 1px solid #fed7aa;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.5);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8, #6b46c1);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .left-panel,
+            .right-panel {
+                width: 100%;
+            }
+            
+            .left-panel {
+                height: 45vh;
+            }
+            
+            .right-panel {
+                height: 55vh;
+            }
+            
+            .left-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .gmail-logo {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .email-navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-arrow {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .analyze-btn {
+                padding: 15px 25px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Additional decorative elements */
+        .floating-icon {
+            position: absolute;
+            opacity: 0.1;
+            pointer-events: none;
+            font-size: 2rem;
+            animation: floatAround 15s infinite linear;
+        }
+
+        .floating-icon:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .floating-icon:nth-child(2) { top: 20%; right: 15%; animation-delay: 3s; }
+        .floating-icon:nth-child(3) { bottom: 20%; left: 20%; animation-delay: 6s; }
+        .floating-icon:nth-child(4) { bottom: 30%; right: 10%; animation-delay: 9s; }
+
+        @keyframes floatAround {
+            0% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(90deg); }
+            50% { transform: translateY(0px) rotate(180deg); }
+            75% { transform: translateY(20px) rotate(270deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating decorative icons -->
+    <div class="floating-icon">🛡️</div>
+    <div class="floating-icon">🔒</div>
+    <div class="floating-icon">📧</div>
+    <div class="floating-icon">⚡</div>
+
+    <div class="main-container">
+        <!-- Left Panel - Analysis Controls -->
+        <div class="left-panel">
+            <div class="left-header">
+                <h1><span class="shield-twirl" aria-hidden="true">🛡️</span> Email Security Analyzer</h1>
+                <p>AI-Powered Threat Detection & Real-time Analysis</p>
+            </div>
+            
+            <div class="left-content">
+                <div class="analyze-section">
+                    <h3><i class="fas fa-search-plus"></i> Smart Email Analysis</h3>
+                    <p style="margin-bottom: 20px; color: #6b7280; font-size: 0.95rem;">
+                        Click below to analyze the current email for security threats, phishing attempts, and suspicious content.
+                    </p>
+                    <button class="analyze-btn" id="analyzeBtn" onclick="analyzeCurrentEmail()">
+                        <i class="fas fa-shield-alt" style="margin-right: 8px;"></i>
+                        Analyze Email Security
+                    </button>
+                    <div class="status-indicator" id="statusIndicator" style="display: none;"></div>
+                </div>
+
+                <div class="analysis-results" id="analysisResults">
+                    <!-- Analysis results will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Gmail Interface -->
+        <div class="right-panel">
+            <div class="gmail-header">
+                <div class="gmail-logo">
+                    <span class="logo-circle">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-.9.732-1.636 1.636-1.636h.909L12 11.64 21.455 3.82h.909c.904 0 1.636.732 1.636 1.636z"/>
+                        </svg>
+                    </span>
+                    <span>Gmail</span>
+                </div>
+                
+                <div class="email-navigation">
+                    <button class="nav-arrow" id="prevBtn" onclick="navigateEmail(-1)" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+
+                    <button class="nav-arrow" id="nextBtn" onclick="navigateEmail(1)">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="email-container">
+                <div class="email-card" id="emailDisplay">
+                    <!-- Email content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="test-emails.js"></script>
+    <script src="phishing-detector.js"></script>
+    <script>
+        class SplitScreenDemo {
+            constructor() {
+                this.currentEmailIndex = 0;
+                this.emails = [
+                    testEmails.validEmails.find(e => e.id === 'hr_ethnic_day'),
+                    testEmails.suspiciousEmails.find(e => e.id === 'phishing_credential_theft'),
+                    testEmails.suspiciousEmails.find(e => e.id === 'phishing_promotion_salary')
+                ];
+                this.phishingDetector = new PhishingDetector();
+                this.currentAnalysis = null;
+                
+                this.init();
+            }
+
+            init() {
+                this.displayCurrentEmail();
+                this.updateNavigation();
+                this.addEmailTypeIcon();
+            }
+
+            addEmailTypeIcon() {
+                const email = this.emails[this.currentEmailIndex];
+                const isValid = this.currentEmailIndex === 0;
+                return isValid ? '✅' : '⚠️';
+            }
+
+            displayCurrentEmail() {
+                const email = this.emails[this.currentEmailIndex];
+                const emailDisplay = document.getElementById('emailDisplay');
+                const emailIcon = this.addEmailTypeIcon();
+                
+                emailDisplay.innerHTML = `
+                    <div class="email-header-info">
+                        <div class="email-subject">
+                            ${email.subject}
+                        </div>
+                        <div class="email-meta">
+                            <span class="email-meta-label" data-label="from">From:</span>
+                            <span>${email.sender}</span>
+                            <span class="email-meta-label" data-label="to">To:</span>
+                            <span>mollyderek@company.com</span>
+                            <span class="email-meta-label" data-label="date">Date:</span>
+                            <span>${new Date(email.timestamp).toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="email-body">${email.content}</div>
+                `;
+
+                // Clear previous analysis with animation
+                this.clearAnalysis();
+            }
+
+            navigateEmail(direction) {
+                const newIndex = this.currentEmailIndex + direction;
+                
+                if (newIndex >= 0 && newIndex < this.emails.length) {
+                    this.currentEmailIndex = newIndex;
+                    
+                    // Add transition effect
+                    const emailCard = document.getElementById('emailDisplay');
+                    emailCard.style.transform = 'scale(0.95)';
+                    emailCard.style.opacity = '0.7';
+                    
+                    setTimeout(() => {
+                        this.displayCurrentEmail();
+                        this.updateNavigation();
+                        emailCard.style.transform = 'scale(1)';
+                        emailCard.style.opacity = '1';
+                    }, 200);
+                }
+            }
+
+            updateNavigation() {
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                prevBtn.disabled = this.currentEmailIndex === 0;
+                nextBtn.disabled = this.currentEmailIndex === this.emails.length - 1;
+            }
+
+            async analyzeCurrentEmail() {
+                const email = this.emails[this.currentEmailIndex];
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                const statusIndicator = document.getElementById('statusIndicator');
+                
+                // Enhanced loading state
+                analyzeBtn.disabled = true;
+                analyzeBtn.innerHTML = '<i class="fas fa-cog fa-spin" style="margin-right: 8px;"></i>Analyzing Security...';
+                this.showStatus('<i class="fas fa-search"></i> Scanning email for threats and vulnerabilities...', 'loading');
+                
+                // Simulate realistic analysis delay
+                await new Promise(resolve => setTimeout(resolve, 2500));
+                
+                try {
+                    const analysis = this.phishingDetector.analyzeEmail(email);
+                    this.currentAnalysis = analysis;
+                    
+                    this.displayAnalysisResults(analysis, email);
+                    
+                    const statusType = analysis.riskLevel === 'minimal' ? 'safe' : 'danger';
+                    const statusIcon = analysis.riskLevel === 'minimal' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-triangle"></i>';
+                    const statusMessage = analysis.riskLevel === 'minimal' 
+                        ? `${statusIcon} Email verified as safe! Risk Score: ${analysis.riskScore}/100`
+                        : `${statusIcon} Security threats detected! Risk Score: ${analysis.riskScore}/100`;
+                    
+                    this.showStatus(statusMessage, statusType);
+                    
+                } catch (error) {
+                    console.error('Analysis failed:', error);
+                    this.showStatus('<i class="fas fa-times-circle"></i> Analysis failed. Please try again.', 'danger');
+                } finally {
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.innerHTML = '<i class="fas fa-shield-alt" style="margin-right: 8px;"></i>Analyze Email Security';
+                }
+            }
+
+            displayAnalysisResults(analysis, email) {
+                const resultsContainer = document.getElementById('analysisResults');
+                const highlightedContent = this.highlightSuspiciousContent(email.content, analysis);
+                
+                const riskFactors = analysis.riskLevel === 'minimal' ? [] : 
+                    analysis.content.suspiciousKeywords.map(k => `Suspicious keyword detected: "${k}"`)
+                    .concat(analysis.content.urlAnalysis.filter(u => u.isSuspicious).map(u => `Malicious URL found: ${u.url}`))
+                    .concat(!analysis.metadata.spfPass ? ['SPF authentication verification failed'] : [])
+                    .concat(!analysis.metadata.dkimPass ? ['DKIM digital signature verification failed'] : [])
+                    .concat(!analysis.metadata.dmarcPass ? ['DMARC policy verification failed'] : [])
+                    .concat(analysis.sender.spoofingLikelihood > 50 ? ['Potential sender domain spoofing detected'] : []);
+
+                const positiveIndicators = analysis.riskLevel === 'minimal' ? [
+                    'No suspicious keywords or phrases found',
+                    'All email authentication protocols passed',
+                    'Sender domain verified as legitimate',
+                    'No malicious URLs or attachments detected',
+                    'Professional communication style confirmed',
+                    'No urgent or pressure tactics identified'
+                ] : [];
+
+                resultsContainer.innerHTML = `
+                    <div class="risk-header">
+                        <h3><i class="fas fa-chart-line"></i> Security Analysis Results</h3>
+                        <div class="risk-score risk-${analysis.riskLevel}">
+                            ${analysis.riskScore}/100
+                        </div>
+                    </div>
+                    
+                    ${riskFactors.length > 0 ? `
+                        <div class="detail-section negative">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Security Threats Detected (${riskFactors.length})</h4>
+                            <ul class="factor-list">
+                                ${riskFactors.map(factor => `<li>${factor}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    ${positiveIndicators.length > 0 ? `
+                        <div class="detail-section positive">
+                            <h4><i class="fas fa-shield-check"></i> Positive Security Indicators</h4>
+                            <ul class="factor-list">
+                                ${positiveIndicators.map(indicator => `<li>${indicator}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="highlighted-content">
+                        <h4><i class="fas fa-highlighter"></i> Content Analysis & Threat Highlighting</h4>
+                        <div class="highlighted-text">${highlightedContent}</div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, rgba(241,245,249,0.8) 0%, rgba(255,255,255,0.9) 100%); border-radius: 10px; border-left: 4px solid #667eea; font-size: 0.95rem; color: #475569;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; font-weight: 600;">
+                            <div><i class="fas fa-shield-alt" style="color: #667eea; margin-right: 5px;"></i> Risk Level: <span style="color: ${analysis.riskLevel === 'minimal' ? '#059669' : '#dc2626'}">${analysis.riskLevel.toUpperCase()}</span></div>
+                            <div><i class="fas fa-exclamation" style="color: #f59e0b; margin-right: 5px;"></i> Urgency Indicators: ${analysis.content.urgencyIndicators}</div>
+                            <div><i class="fas fa-link" style="color: #3b82f6; margin-right: 5px;"></i> URLs Analyzed: ${analysis.content.urlAnalysis.length}</div>
+                            <div><i class="fas fa-key" style="color: #8b5cf6; margin-right: 5px;"></i> Keywords Found: ${analysis.content.suspiciousKeywords.length}</div>
+                        </div>
+                    </div>
+                `;
+                
+                resultsContainer.classList.add('show');
+            }
+
+            highlightSuspiciousContent(content, analysis) {
+                let highlighted = content;
+                
+                // Highlight suspicious keywords with enhanced styling
+                analysis.content.suspiciousKeywords.forEach(keyword => {
+                    const regex = new RegExp(`\\b(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'gi');
+                    highlighted = highlighted.replace(regex, '<span class="suspicious-highlight" title="Suspicious keyword detected">$1</span>');
+                });
+                
+                // Highlight suspicious URLs with enhanced styling
+                analysis.content.urlAnalysis.forEach(urlAnalysis => {
+                    if (urlAnalysis.isSuspicious) {
+                        highlighted = highlighted.replace(
+                            urlAnalysis.url, 
+                            `<span class="url-highlight" title="Potentially malicious URL">${urlAnalysis.url}</span>`
+                        );
+                    }
+                });
+                
+                return highlighted;
+            }
+
+            showStatus(message, type) {
+                const statusIndicator = document.getElementById('statusIndicator');
+                statusIndicator.innerHTML = type === 'loading' 
+                    ? `<div class="loading-spinner"></div>${message}`
+                    : message;
+                statusIndicator.className = `status-indicator status-${type}`;
+                statusIndicator.style.visibility = 'visible';
+                
+                if (type !== 'loading') {
+                    setTimeout(() => {
+                        statusIndicator.style.opacity = '0';
+                        setTimeout(() => {
+                            statusIndicator.style.visibility = 'hidden';
+                            statusIndicator.style.opacity = '1';
+                        }, 300);
+                    }, 6000);
+                }
+            }
+
+            clearAnalysis() {
+                const resultsContainer = document.getElementById('analysisResults');
+                resultsContainer.classList.remove('show');
+                
+                const statusIndicator = document.getElementById('statusIndicator');
+                statusIndicator.style.visibility = 'hidden';
+                statusIndicator.innerHTML = '';
+            }
+        }
+
+        // Global functions for HTML onclick handlers
+        function navigateEmail(direction) {
+            demo.navigateEmail(direction);
+        }
+
+        function analyzeCurrentEmail() {
+            demo.analyzeCurrentEmail();
+        }
+
+        // Initialize demo with enhanced loading
+        document.addEventListener('DOMContentLoaded', function() {
+            const demo = new SplitScreenDemo();
+            window.demo = demo;
+            
+            // Add welcome message
+            setTimeout(() => {
+                console.log('🛡️ Email Security Analyzer - Enhanced Demo Ready!');
+                console.log('✨ Features: AI-powered analysis, real-time threat detection, beautiful UI');
+                console.log('🎯 Instructions: Navigate between emails and click "Analyze" to see magic happen!');
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 
