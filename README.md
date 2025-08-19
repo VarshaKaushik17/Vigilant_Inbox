@@ -1,6 +1,8 @@
-# Email Security Analyzer Chrome Extension
+# Email Security Analyzer - Prototype for Chrome Extension
 
-A comprehensive Chrome extension for detecting phishing emails, analyzing metadata, and providing real-time security warnings across major email platforms.
+#Link - https://varshakaushik17.github.io/Vigilant_Inbox/
+
+Created a prototype to demonstrate how a comprehensive Chrome extension will be used for detecting phishing emails, analyzing metadata, and providing real-time security warnings across major email platforms.
 
 ## 🛡️ Features
 
@@ -185,5 +187,6 @@ For support and questions:
 - 📚 Documentation: Wiki pages
 
 ---
+
 
 **⚠️ Important Security Note**: This extension provides additional security analysis but should not be your only line of defense. Always exercise caution with suspicious emails and verify sender authenticity through alternative channels when in doubt. 
